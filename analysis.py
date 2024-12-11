@@ -89,6 +89,8 @@ def age_gender_confidence(df):
     df['Age'] = pd.to_numeric(df['Age'], errors='coerce')
     df['Gender'] = pd.to_numeric(df['Gender'], errors='coerce')
 
+    df = df[(df['Age'] != 0) & (df['Gender'] != 0)].copy()
+
     # Define mappings
     age_mapping = {
         1: "Under 18",
@@ -143,7 +145,6 @@ def age_gender_confidence(df):
     plt.tight_layout()
     plt.savefig('results/Female_Confidence_Heatmap.png', dpi=300)
     # plt.show()
-
 
 def create_heatmap_education_vs_familiarity(df):
     """
@@ -252,32 +253,28 @@ def correlate_privacy_actions(df, x_axis_col, title, x_axis_title, file_name, pr
     plt.tight_layout()
     plt.savefig(output_path, dpi=300)
     print(f"Plot saved to {output_path}")
-
-    # Optionally display the plot
-    plt.show()
-
-
-
+    # plt.show()
 
 
 def main():
     # Load the cleaned DataFrame from the pickle file
     df = pd.read_pickle('survey_12-8.pkl')
 
-    # 
+    # Daily Device Usage and Privacy Actions
     correlate_privacy_actions(df, x_axis_col='ScreenTime', 
                               title='Daily Device Usage vs. Privacy Actions',
                               x_axis_title='Daily Screen Time (hours)', 
                               file_name='ScreenTime_vs_PrivacyActions',
                               privacy_cols=['Terms&Conditions', 'ReviewPermissions', 'Cookies'])
+    
+    # Confidence in Ability to Protect Privacy vs Privacy Actions
     correlate_privacy_actions(df, x_axis_col='Confidence', 
                               title='Confidence in Ability to Protect Privacy vs. Actions',
                               x_axis_title='Confidence in ability to protect privacy online', 
                               file_name='PrivacyConfidence_vs_PrivacyActions',
                               privacy_cols=['Terms&Conditions', 'ReviewPermissions', 'Cookies'])
 
-
-    # Create a heatmap for Education vs FamiliarDP
+    # Education Level vs Familiarity with Dark Patterns
     create_heatmap_education_vs_familiarity(df)
 
     # Analyze correlation between Age, Gender, and
@@ -285,7 +282,6 @@ def main():
     # Creates heatmaps for Female and Male
     age_gender_confidence(df)
 
- 
     # Analyze common sentiments reported by participants for question
     # create a wordmap of the most common themes
     exclude_words = ['dark', 'patterns', 'user'] # Words to exclude
