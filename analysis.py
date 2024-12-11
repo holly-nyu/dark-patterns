@@ -194,12 +194,81 @@ def create_heatmap_education_vs_familiarity(df):
     # plt.show()
 
 
+def analyze_screen_time_privacy(df, screen_time_col='ScreenTime', privacy_cols=None):
+    """
+    Analyzes and plots the relationship between screen time and multiple privacy actions.
+
+    Parameters:
+    - df (pd.DataFrame): The DataFrame containing survey data.
+    - screen_time_col (str): Column name for daily device usage (Screen Time).
+    - privacy_cols (list of str): List of column names representing privacy actions.
+
+    Returns:
+    - None: Saves the plot as a PNG file and displays it.
+    """
+    if privacy_cols is None:
+        privacy_cols = ['Terms&Conditions', 'ReviewPermissions', 'Cookies']
+
+    # Ensure columns exist in the DataFrame
+    missing_cols = [col for col in [screen_time_col] + privacy_cols if col not in df.columns]
+    if missing_cols:
+        raise ValueError(f"Missing columns in DataFrame: {missing_cols}")
+
+    # Convert the columns to numeric
+    df[screen_time_col] = pd.to_numeric(df[screen_time_col], errors='coerce')
+    for col in privacy_cols:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+
+    # Melt the DataFrame to have a single column representing privacy actions
+    df_melted = df.melt(
+        id_vars=[screen_time_col], 
+        value_vars=privacy_cols, 
+        var_name='PrivacyAction', 
+        value_name='Frequency'
+    )
+
+    # Drop NaN values for analysis
+    df_cleaned = df_melted.dropna(subset=[screen_time_col, 'Frequency'])
+
+    # Generate the line plot
+    plt.figure(figsize=(12, 8))
+    sns.lineplot(
+        data=df_cleaned,
+        x=screen_time_col,
+        y='Frequency',
+        hue='PrivacyAction',
+        ci='sd'
+    )
+
+    # Customize the plot
+    plt.title("Daily Device Usage vs. Privacy Actions", fontsize=14)
+    plt.xlabel("Daily Screen Time (hours)", fontsize=12)
+    plt.ylabel("Frequency of Privacy Actions", fontsize=12)
+    plt.legend(title="Privacy Actions", loc='upper left')
+    plt.grid(True)
+
+    # Save the plot as a PNG file
+    output_path = 'results/ScreenTime_vs_PrivacyActions.png'
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=300)
+    print(f"Plot saved to {output_path}")
+
+    # Optionally display the plot
+    plt.show()
+
+
+
+
+
 def main():
     # Load the cleaned DataFrame from the pickle file
     df = pd.read_pickle('survey_12-8.pkl')
 
+    # 
+    analyze_screen_time_privacy(df, screen_time_col='ScreenTime', privacy_cols=['Terms&Conditions', 'ReviewPermissions', 'Cookies'])
 
-     # Create a heatmap for Education vs FamiliarDP
+
+    # Create a heatmap for Education vs FamiliarDP
     create_heatmap_education_vs_familiarity(df)
 
     # Analyze correlation between Age, Gender, and
