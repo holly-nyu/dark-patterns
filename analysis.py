@@ -145,9 +145,62 @@ def age_gender_confidence(df):
     # plt.show()
 
 
+def create_heatmap_education_vs_familiarity(df):
+    """
+    Creates a heatmap to visualize the relationship between Education Level ('Education')
+    and Familiarity with "Dark Patterns" ('FamiliarDP').
+    """
+    # Filter and copy the DataFrame
+    filtered_df = df[(df['Education'] != 0) & (df['FamiliarDP'] != 0)].copy()
+
+    # Map FamiliarDP values to 'Yes' and 'No'
+    familiarity_mapping = {'1': 'Yes', '2': 'No'}
+    filtered_df['FamiliarDP'] = filtered_df['FamiliarDP'].map(familiarity_mapping)
+
+    education_mapping = {'1': 'High School diploma or equivalent',
+                         '2': 'Associate degree', 
+                         '3': 'Bachelor\'s degree',
+                         '4': 'Master\'s degree', 
+                         '5': 'Doctoral degree (Ph.D.)',
+                         '6': 'Other (please specify)',
+                        }
+    filtered_df['Education'] = filtered_df['Education'].map(education_mapping)
+ 
+
+    # Check for emptiness
+    if filtered_df.empty:
+        print("Filtered DataFrame is empty. No data to plot.")
+        return
+
+    # Create a crosstab for the heatmap
+    heatmap_data = pd.crosstab(filtered_df['FamiliarDP'], filtered_df['Education'])
+
+    # Check if heatmap_data is empty
+    if heatmap_data.empty:
+        print("No data for the heatmap after filtering.")
+        return
+
+    # Plot the heatmap
+    plt.figure(figsize=(12, 8))
+    sns.heatmap(heatmap_data, annot=True, cmap='YlGnBu', cbar=True, fmt='d')
+    plt.title('Education Level vs. Familiarity with Dark Patterns')
+    plt.xlabel('Familiarity with Dark Patterns')
+    plt.xticks(rotation=45)
+    plt.ylabel('Education Level')
+    plt.tight_layout()
+
+    # Save and/or show the heatmap
+    plt.savefig('results/Education_vs_FamiliarDP_Heatmap.png', dpi=300)
+    # plt.show()
+
+
 def main():
     # Load the cleaned DataFrame from the pickle file
     df = pd.read_pickle('survey_12-8.pkl')
+
+
+     # Create a heatmap for Education vs FamiliarDP
+    create_heatmap_education_vs_familiarity(df)
 
     # Analyze correlation between Age, Gender, and
     # ranked confidence in ability to protect their privacy online
